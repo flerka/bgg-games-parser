@@ -2,7 +2,6 @@
 #git clone https://github.com/flerka/bgg-ranking-historicals
 
 file_name= # used for function return values
-new_file_name='new_file.csv'
 
 fill_file_name () {
     current_day="$(date +%d)"
@@ -36,9 +35,6 @@ main () {
 
         git pull
         fill_file_name 
-        
-        # create new csv with additional column
-        awk -F"," 'FNR==1{a="bgg_id"} FNR>1{a=$8} {match(a, /\/([[:digit:]]+)\//)} {print $0","substr(a, RSTART+1, RLENGTH-2)}' $file_name > "$new_file_name"
     fi
 }
 
