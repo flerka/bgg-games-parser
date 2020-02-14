@@ -1,0 +1,34 @@
+version: '3.7'
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: "gamesinfo_mongodb"
+    networks:
+      - games
+    ports:
+      - 27020:27017
+    environment:
+      - MONGO_DATA_DIR=/data/games_mongodb
+      - MONGO_LOG_DIR=/dev/null
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PWD}
+    volumes:
+      - ./data/games_mongodb:/data/games_mongodb
+  script:
+    image: flerka/bggimport:latest
+    container_name: script
+    environment:
+        - MONGO_HOST=mongodb:27017
+        - MONGO_USER=${MONGO_USER}
+        - MONGO_PWD=${MONGO_PWD}
+    networks:
+      - game
+    depends_on:
+      - mongodb
+    volumes:
+      - ./repo:/repo
+networks:
+  games:
+    external: true
+volumes:
+  db-data:

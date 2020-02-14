@@ -1,8 +1,18 @@
 #!/bin/bash
-#git clone https://github.com/flerka/bgg-ranking-historicals
 
-file_name= # used for function return values
+if [[ -z "${MONGO_HOST}" ]]; then
+    MONGO_HOST="localhost:27017"
+fi
 
+if [[ -z "${MONGO_USER}" ]]; then
+    MONGO_USER=""
+fi
+
+if [[ -z "${MONGO_PWD}" ]]; then
+    MONGO_PWD=""
+fi
+
+file_name= # used for function return value
 fill_file_name () {
     current_day="$(date +%d)"
     while [[ "$current_day" != "0" ]]
@@ -21,21 +31,33 @@ fill_file_name () {
    done
    
    echo "there is no file with games"  
-   exit 1
 }
 
 main () {
-    git fetch
-    commits_count="$(git rev-list HEAD...origin/master --count)" 
+    cd /repo
 
-    if [ $commits_count == 0 ]; then
-        echo "Repository is up to date."
+    if [! "$(ls -A)" ]; then
+        # clone in current directory
+        git clone https://github.com/flerka/bgg-ranking-historicals .
     else
-        echo "New files in repository."  
+        git fetch
+        commits_count="$(git rev-list HEAD...origin/master --count)" 
 
+        if [ $commits_count == 0 ]; then
+            echo "Repository is up to date."
+            return;
+        
         git pull
-        fill_file_name 
+    fi
+
+    # get name of the file that contains latest changes
+    fill_file_name 
+
+    # import data from to the file to mongodb
+    mongoimport -d BgGames -c games --type csv --host $MONGO_HOST --username MONGO_USER --password MONGO_PWD --file $file_name --headerline
     fi
 }
 
 main
+
+exit 1
