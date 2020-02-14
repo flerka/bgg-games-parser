@@ -12,7 +12,9 @@ if [[ -z "${MONGO_PWD}" ]]; then
     MONGO_PWD=""
 fi
 
+repo_path="/repo"
 file_name= # used for function return value
+
 fill_file_name () {
     current_day="$(date +%d)"
     while [[ "$current_day" != "0" ]]
@@ -34,20 +36,21 @@ fill_file_name () {
 }
 
 main () {
-    cd /repo
+    cd $repo_path
 
-    if [! "$(ls -A)" ]; then
-        # clone in current directory
-        git clone https://github.com/flerka/bgg-ranking-historicals .
-    else
+    if [ "$(ls $repo_path)" ]; then
+        echo "folder is not empty"
         git fetch
         commits_count="$(git rev-list HEAD...origin/master --count)" 
 
         if [ $commits_count == 0 ]; then
             echo "Repository is up to date."
             return;
-        
-        git pull
+        fi
+        git pull  
+    else
+        # clone in current directory
+        git clone --quiet https://github.com/beefsack/bgg-ranking-historicals.git $repo_path
     fi
 
     # get name of the file that contains latest changes
@@ -55,7 +58,6 @@ main () {
 
     # import data from to the file to mongodb
     mongoimport -d BgGames -c games --type csv --host $MONGO_HOST --username MONGO_USER --password MONGO_PWD --file $file_name --headerline
-    fi
 }
 
 main
