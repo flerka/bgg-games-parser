@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 if [[ -z "${MONGO_HOST}" ]]; then
     MONGO_HOST="localhost:27017"
 fi
@@ -33,11 +33,11 @@ fill_file_name () {
    done
    
    echo "there is no file with games"  
+   exit 1
 }
 
 main () {
     cd $repo_path
-
     if [ "$(ls $repo_path)" ]; then
         echo "folder is not empty"
         git fetch
@@ -49,15 +49,17 @@ main () {
         fi
         git pull  
     else
-        # clone in current directory
-        git clone --quiet https://github.com/beefsack/bgg-ranking-historicals.git $repo_path
+        echo $repo_path
+        echo 'cloning'
+        #clone in current directory
+        git clone --quiet https://github.com/beefsack/bgg-ranking-historicals.git .
     fi
 
     # get name of the file that contains latest changes
     fill_file_name 
 
     # import data from to the file to mongodb
-    mongoimport -d BgGames -c games --type csv --host $MONGO_HOST --username MONGO_USER --password MONGO_PWD --file $file_name --headerline
+    mongoimport -d BgGames -c games --type csv --host $MONGO_HOST --username $MONGO_USER --password $MONGO_PWD --file $file_name --headerline
 }
 
 main
