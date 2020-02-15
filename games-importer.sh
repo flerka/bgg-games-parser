@@ -59,7 +59,7 @@ main () {
     fill_file_name 
 
     # import data from to the file to mongodb
-    mongoimport -d BgGames -c games --type csv --host $MONGO_HOST --username $MONGO_USER --password $MONGO_PWD --file $file_name --headerline
+    mongoimport -d BgGames -c games --type csv --host $MONGO_HOST --username $MONGO_USER --password $MONGO_PWD --file $file_name --authenticationMechanism=SCRAM-SHA-256 --authenticationDatabase=admin --headerline
 }
 
 main
